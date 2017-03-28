@@ -1,0 +1,25 @@
+{
+  "name": "hexacards-api",
+  "version": "0.0.1",
+  "description": "The API for HexaCards",
+  "main": "index.js",
+  "private": "true",
+  "scripts": {
+    "start": "tsc && node dist/server.js",
+    "tsc": "tsc"
+  },
+  "author": "Michael Chappell",
+  "license": "SEE LICENSE IN LICENSE.TXT",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "rethinkdb": "^2.3.3"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.16.2",
+    "@types/express": "^4.0.35",
+    "@types/node": "^6.0.68",
+    "@types/rethinkdb": "^2.3.2",
+    "typescript": "^2.2.2"
+  }
+}
