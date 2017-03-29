@@ -6,7 +6,7 @@ import { Database } from './db';
 import { Routes } from './api';
 
 Database.init().then(() => {
-  Logger.init();
+  // Logger.init(); -- unused
 
   const app = express();
 
@@ -22,7 +22,7 @@ Database.init().then(() => {
   });
 
   app.use((req, res, next) => {
-    console.log('Time to log!');
+    Logger.log('HTTP', req.method + ': ' + req.originalUrl, ['http', req.method, req.baseUrl + '/' +  req.path], req.ip);
     next();
   });
 
@@ -35,6 +35,6 @@ Database.init().then(() => {
 
 }, err => {
 
-  console.error('ERROR: Failed to startup due to database issues; ', err);
+  Logger.error('Failed to start up due to database issues', err, ['error', 'startup']);
   process.exit(1);
 });

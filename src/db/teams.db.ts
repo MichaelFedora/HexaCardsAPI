@@ -72,4 +72,34 @@ export class TeamsDb {
         });
     });
   }
+
+  update(team: Team): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      this.table.get(team.id).update(team).run(this.connection, (err, result) => {
+        if(err) { reject(err); return; }
+        if(result.skipped > 0) { reject(404); return; }
+        resolve();
+      });
+    });
+  }
+
+  get(id: string): Promise<Team> {
+    return new Promise<Team>((resolve, reject) => {
+      this.table.get(id).run(this.connection, (err, result) => {
+        if(err) { reject(err); return; }
+        if(!result) { reject(404); return; }
+        resolve(Team.fromAny(result));
+      });
+    });
+  }
+
+  delete(id: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      this.table.get(id).delete().run(this.connection, (err, result) => {
+        if(err) { reject(err); return; }
+        if(result.skipped > 0) { reject(404); return; }
+        resolve();
+      });
+    });
+  }
 }
