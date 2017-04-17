@@ -29,12 +29,14 @@ export class Database {
   }
 
   private static postInit(resolve, reject): void {
-    this.teams = new TeamsDb(this.connection, this.db);
     this.log = new LogDb(this.connection, this.db);
+    this.teams = new TeamsDb(this.connection, this.db);
+    this.users = new UsersDb(this.connection, this.db);
+
     Promise.all([
       this.log.init(),
       this.teams.init(),
       this.users.init()
-    ]).then(() => resolve, err => reject(err));
+    ]).then(() => resolve(), err => reject(err));
   }
 }
