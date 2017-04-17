@@ -4,7 +4,11 @@ export class Team {
   name: string;
   color: string;
 
-  public static fromAny(obj: any) {
+  public static fromDTO(obj: any) {
+    return new Team(obj.id, obj.name, obj.color);
+  }
+
+  public static fromDBO(obj: any) {
     return new Team(obj.id, obj.name, obj.color);
   }
 
@@ -23,7 +27,15 @@ export class Team {
     }
   }
 
-  toAny(): any {
+  toDTO(): any {
+    return {
+      id: this.id,
+      name: this.name,
+      color: this.color
+    };
+  }
+
+  toDBO(): any {
     return {
       id: this.id,
       name: this.name,

@@ -19,13 +19,13 @@ export class LogEntry {
     if(logEntryOrId instanceof LogEntry) {
       const other = logEntryOrId as LogEntry;
       this.id = other.id;
-      this.tags = other.tags.splice(0);
+      this.tags = other.tags.slice();
       this.subject = other.subject;
       this.message = other.message;
       this.extra = other.extra;
     } else {
       this.id = logEntryOrId as string || '';
-      this.tags = tags ? tags.splice(0) : [];
+      this.tags = tags ? tags.slice() : [];
       this.subject = subject || '';
       this.message = message || '';
       this.extra = extra || '';

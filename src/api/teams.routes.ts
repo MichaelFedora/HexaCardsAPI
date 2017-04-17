@@ -7,23 +7,23 @@ export function bootstrap(router: Router) {
   router.route('/teams')
     .get((req, res) => {
       Database.teams.getAll().then(
-        value => res.json(value.map(v => v.toAny())),
+        value => res.json(value.map(v => v.toDTO())),
         err => {
           res.sendStatus(500);
           Logger.error('GET: /teams', err);
         });
     })
     .post((req, res) => { // check auth
-      const team = Team.fromAny(req.body);
+      const team = Team.fromDTO(req.body);
       Database.teams.create(team).then(
-        value => res.json(value.toAny()),
+        value => res.json(value.toDTO()),
         err => {
           res.sendStatus(500);
           Logger.error('POST: /teams', err);
         });
     })
     .put((req, res) => { // check auth
-      const team = Team.fromAny(req.body);
+      const team = Team.fromDTO(req.body);
       Database.teams.update(team).then(
         value => res.sendStatus(204),
         err => {
@@ -39,7 +39,7 @@ export function bootstrap(router: Router) {
   router.route('/teams/:id')
     .get((req, res) => {
       Database.teams.get(req.params.id).then(
-        value => res.json(value.toAny()),
+        value => res.json(value.toDTO()),
         err => {
           if(err === 404) {
             res.sendStatus(404);

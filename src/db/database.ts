@@ -3,12 +3,14 @@ import * as r from 'rethinkdb';
 
 import { TeamsDb } from './teams.db';
 import { LogDb } from './log.db';
+import { UsersDb } from './users.db';
 
 export class Database {
 
   private static connection: Connection;
 
   public static teams: TeamsDb;
+  public static users: UsersDb;
   public static log: LogDb;
 
   public static get db(): string { return 'test'; }
@@ -29,12 +31,10 @@ export class Database {
   private static postInit(resolve, reject): void {
     this.teams = new TeamsDb(this.connection, this.db);
     this.log = new LogDb(this.connection, this.db);
-    this.teams.init().then(() =>
-      this.log.init().then(() =>
-        resolve(),
-        err => reject(err)),
-     err => reject(err));
+    Promise.all([
+      this.log.init(),
+      this.teams.init(),
+      this.users.init()
+    ]).then(() => resolve, err => reject(err));
   }
-
-  // public static users: UsersDb;
 }
