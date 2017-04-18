@@ -27,7 +27,9 @@ export class Database {
         conn.use(this.dbName);
         this._connection = conn;
         Promise.all([
-          this.initTeams()
+          this.initTeams(),
+          this.initUsers(),
+          this.initLog()
         ]).then(() => resolve());
       }).catch(err => { reject(err); return; });
     });
