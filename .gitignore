@@ -3,6 +3,7 @@
 # compiled output
 /dist
 /tmp
+.LICENSE.txt
 
 # dependencies
 /node_modules

@@ -1,6 +1,6 @@
 {
   "name": "hexacards-api",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The API for HexaCards",
   "main": "index.js",
   "private": "true",
