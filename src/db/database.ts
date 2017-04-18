@@ -7,31 +7,33 @@ import { UsersDb } from './users.db';
 
 export class Database {
 
-  private static connection: Connection;
+  private static _connection: Connection;
+  public static get connection() { return this._connection; }
 
   public static teams: TeamsDb;
   public static users: UsersDb;
   public static log: LogDb;
 
-  public static get db(): string { return 'test'; }
+  public static get dbName(): string { return 'test'; }
 
   public static init(): Promise<void> {
+    console.log('Initializing database...');
     return new Promise<void>((resolve, reject) => {
       r.connect({
         host: '127.0.0.1',
         port: 28015
       }, (err, conn) => {
         if(err) { reject(err); return; }
-        this.connection = conn;
+        this._connection = conn;
         this.postInit(resolve, reject);
       });
     });
   }
 
   private static postInit(resolve, reject): void {
-    this.log = new LogDb(this.connection, this.db);
-    this.teams = new TeamsDb(this.connection, this.db);
-    this.users = new UsersDb(this.connection, this.db);
+    this.log = new LogDb(this.connection, this.dbName);
+    this.teams = new TeamsDb(this.connection, this.dbName);
+    this.users = new UsersDb(this.connection, this.dbName);
 
     Promise.all([
       this.log.init(),
