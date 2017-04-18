@@ -16,6 +16,8 @@ Feel free to learn.
 
 ## How to test:
 
+**Register:**
+
 `POST 127.0.0.1:8079/api/users/register`
 
 Body: (application/json):
@@ -27,20 +29,20 @@ Body: (application/json):
 }
 ```
 
-**Then, to log in:**
+**Log in:**
 
 `POST 127.0.0.1:8079/api/users/login`
 
 Headers: `Authorization: Basic johntest:asdf`
-- Should return a token
+It should return a token in the body.
 
-**Then, to test the token:**
+**Test the token:**
 
 `GET 127.0.0.1:8079/api/users/self`
 
 Headers: `Authorization: Bearer <your-token-here>`
 
-- It should return
+It should return:
 ```json
 {
   "id": "your-id-here",
@@ -51,7 +53,7 @@ Headers: `Authorization: Bearer <your-token-here>`
 ---
 
 There are also other GET's for `/api/teams` and `/api/teams/id` which are open without a
-token. To `post` or `put` a team, you have to be authenticated (i.e. use at token).
+token. To POST or PUT a team, you have to be authenticated (i.e. use a token).
 
 ## Enjoy!
 
