@@ -1,14 +1,14 @@
 import { Connection, Db, Table } from 'rethinkdb';
 import * as r from 'rethinkdb';
 
-import { Team } from '../data';
+import { Team, Rejection } from '../data';
 
 export class TeamsDb {
 
   private connection: Connection;
   private dbName: string;
-  private get db(): Db { return r.db(this.dbName); }
-  private get table(): Table { return this.db.table('teams'); }
+  get db(): Db { return r.db(this.dbName); }
+  get table(): Table { return this.db.table('teams'); }
 
   constructor(connection: Connection, dbName: string) {
     this.connection = connection;
@@ -16,9 +16,8 @@ export class TeamsDb {
   }
 
   postInit(resolve: (value?: void | PromiseLike<void>) => void, reject: (reason?: any) => void): void {
-    this.table.count().eq(0).run(this.connection, (err, result) => {
-      if(err) { reject(err); return; }
-      if(result) {
+    this.table.count().eq(0).run(this.connection).then(eq0 => {
+      if(eq0) {
         this.table.insert([
           {
             name: 'Blue Team',
@@ -28,36 +27,33 @@ export class TeamsDb {
             name: 'Red Team',
             color: '#C4281C'
           }
-        ]).run(this.connection, (err, result) => {
-          if(err) { reject(err); return; }
-          resolve();
-        });
+        ]).run(this.connection).then(result => resolve());
       } else resolve();
-    });
+    }).catch(err => reject(new Rejection(err)));
   }
 
   init(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.db.tableList().run(this.connection, (err, result) => {
-        if(err) { reject(err); return; }
-        if(result.findIndex(t => t === 'teams') >= 0) { this.postInit(resolve, reject); return; }
-        this.db.tableCreate('teams').run(this.connection, (err, result) => {
-          if(err) { reject(err); return; }
+      this.db.tableList().run(this.connection).then(result => {
+
+        if(result.findIndex(t => t === 'teams') >= 0) {
           this.postInit(resolve, reject);
-        });
-      });
+
+        } else {
+          this.db.tableCreate('teams').run(this.connection)
+              .then(table => this.postInit(resolve, reject));
+        }
+      }).catch(err => reject(new Rejection(err)));
     });
   }
 
   getAll(): Promise<Team[]> {
     return new Promise<Team[]>((resolve, reject) => {
-      this.table.run(this.connection, (err, cursor) => {
-        if(err) { reject(err); return; }
-        cursor.toArray((err, result) => {
-          if(err) { reject(err); return; }
-          resolve(result.map(o => Team.fromDBO(o)));
+      this.table.run(this.connection).then(cursor => {
+        cursor.toArray().then(arr => {
+          resolve(arr.map(o => Team.fromDBO(o)));
         });
-      });
+      }).catch(err => reject(new Rejection(err)));
     });
   }
 
@@ -65,41 +61,37 @@ export class TeamsDb {
     return new Promise<Team>((resolve, reject) => {
       const data = team.toDBO();
       delete data.id;
-      this.table.insert(data).run(this.connection, (err, result) => {
-          if(err) { reject(err); return; }
-          data.id = result.generated_keys[0];
-          resolve(Team.fromDBO(data));
-        });
+      this.table.insert(data).run(this.connection).then(result => {
+        data.id = result.generated_keys[0];
+        resolve(Team.fromDBO(data));
+      }, err => reject(new Rejection(err)));
     });
   }
 
   update(team: Team): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.table.get(team.id).update(team).run(this.connection, (err, result) => {
-        if(err) { reject(err); return; }
-        if(result.skipped > 0) { reject(404); return; }
+      this.table.get(team.id).update(team).run(this.connection).then(result => {
+        if(result.skipped > 0) { reject(new Rejection('Team not found with id ' + team.id, 404)); return; }
         resolve();
-      });
+      }, err => reject(new Rejection(err)));
     });
   }
 
   get(id: string): Promise<Team> {
     return new Promise<Team>((resolve, reject) => {
-      this.table.get(id).run(this.connection, (err, result) => {
-        if(err) { reject(err); return; }
-        if(!result) { reject(404); return; }
+      this.table.get(id).run(this.connection).then(result => {
+        if(!result) { reject(new Rejection('Team not found with id ' + id, 404)); return; }
         resolve(Team.fromDBO(result));
-      });
+      }, err => reject(new Rejection(err)));
     });
   }
 
   delete(id: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.table.get(id).delete().run(this.connection, (err, result) => {
-        if(err) { reject(err); return; }
-        if(result.skipped > 0) { reject(404); return; }
+      this.table.get(id).delete().run(this.connection).then(result => {
+        if(result.skipped > 0) { reject(new Rejection('Team not found with id ' + id, 404)); return; }
         resolve();
-      });
+      }, err => reject(new Rejection(err)));
     });
   }
 }

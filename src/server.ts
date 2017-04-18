@@ -5,8 +5,10 @@ import { Database } from './db';
 
 import { Routes } from './api';
 
+console.log('Initializing database...');
 Database.init().then(() => {
   // Logger.init(); -- unused
+  console.log('Database Initialized');
 
   const app = express();
 

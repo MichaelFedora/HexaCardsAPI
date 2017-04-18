@@ -17,7 +17,6 @@ export class Database {
   public static get dbName(): string { return 'test'; }
 
   public static init(): Promise<void> {
-    console.log('Initializing database...');
     return new Promise<void>((resolve, reject) => {
       r.connect({
         host: '127.0.0.1',
