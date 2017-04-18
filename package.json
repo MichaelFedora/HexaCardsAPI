@@ -16,7 +16,8 @@
     "express": "^4.15.2",
     "jsonwebtoken": "^7.3.0",
     "moment": "^2.18.1",
-    "rethinkdb": "^2.3.3"
+    "rethinkdb": "^2.3.3",
+    "rethinkdbdash": "^2.3.28"
   },
   "devDependencies": {
     "@types/async": "^2.0.40",

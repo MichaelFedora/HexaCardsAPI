@@ -1,5 +1,4 @@
 import { Connection, Db, Table } from 'rethinkdb';
-import * as r from 'rethinkdb';
 
 import { Team, Rejection } from '../data';
 
@@ -7,12 +6,16 @@ export class TeamsDb {
 
   private connection: Connection;
   private dbName: string;
-  get db(): Db { return r.db(this.dbName); }
+  get db(): Db { return this.r.db(this.dbName); }
   get table(): Table { return this.db.table('teams'); }
 
-  constructor(connection: Connection, dbName: string) {
+  private _r: any;
+  private get r(): any { return this._r; }
+
+  constructor(connection: Connection, dbName: string, r: any) {
     this.connection = connection;
     this.dbName = dbName;
+    this._r = r;
   }
 
   postInit(resolve: (value?: void | PromiseLike<void>) => void, reject: (reason?: any) => void): void {

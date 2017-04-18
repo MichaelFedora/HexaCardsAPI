@@ -1,18 +1,21 @@
 import { Connection, Db, Table } from 'rethinkdb';
-import * as r from 'rethinkdb';
-
 import { LogEntry, Rejection } from '../data';
 
 export class LogDb {
 
   private connection: Connection;
   private dbName: string;
-  private get db(): Db { return r.db(this.dbName); }
-  private get table(): Table { return this.db.table('log'); }
 
-  constructor(connection: Connection, dbName: string) {
+  get db(): Db { return this.r.db(this.dbName); }
+  get table(): Table { return this.db.table('log'); }
+
+  private _r: any;
+  private get r(): any { return this._r; }
+
+  constructor(connection: Connection, dbName: string, r: any) {
     this.connection = connection;
     this.dbName = dbName;
+    this._r = r;
   }
 
   init(): Promise<void> {
