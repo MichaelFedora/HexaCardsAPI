@@ -1,21 +1,14 @@
 import { Connection, Db, Table } from 'rethinkdb';
-import * as r from 'rethinkdb';
+import { Database } from '../db';
 
 import { Team, Rejection } from '../data';
 
-export class TeamsDb {
+export class TeamService {
 
-  private connection: Connection;
-  private dbName: string;
-  get db(): Db { return r.db(this.dbName); }
-  get table(): Table { return this.db.table('teams'); }
+  public static get connection(): Connection { return Database.connection; }
+  public static get table(): Table { return Database.users; }
 
-  constructor(connection: Connection, dbName: string) {
-    this.connection = connection;
-    this.dbName = dbName;
-  }
-
-  postInit(resolve: (value?: void | PromiseLike<void>) => void, reject: (reason?: any) => void): void {
+  /*makeSampleData(resolve, reject): void {
     this.table.count().eq(0).run(this.connection).then(eq0 => {
       if(eq0) {
         this.table.insert([
@@ -30,24 +23,9 @@ export class TeamsDb {
         ]).run(this.connection).then(result => resolve());
       } else resolve();
     }).catch(err => reject(new Rejection(err)));
-  }
+  }*/
 
-  init(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      this.db.tableList().run(this.connection).then(result => {
-
-        if(result.findIndex(t => t === 'teams') >= 0) {
-          this.postInit(resolve, reject);
-
-        } else {
-          this.db.tableCreate('teams').run(this.connection)
-              .then(table => this.postInit(resolve, reject));
-        }
-      }).catch(err => reject(new Rejection(err)));
-    });
-  }
-
-  getAll(): Promise<Team[]> {
+  public static getAll(): Promise<Team[]> {
     return new Promise<Team[]>((resolve, reject) => {
       this.table.run(this.connection).then(cursor => {
         cursor.toArray().then(arr => {
@@ -57,7 +35,7 @@ export class TeamsDb {
     });
   }
 
-  create(team: Team): Promise<Team> {
+  public static create(team: Team): Promise<Team> {
     return new Promise<Team>((resolve, reject) => {
       const data = team.toDBO();
       delete data.id;
@@ -68,7 +46,7 @@ export class TeamsDb {
     });
   }
 
-  update(team: Team): Promise<void> {
+  public static update(team: Team): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.table.get(team.id).update(team).run(this.connection).then(result => {
         if(result.skipped > 0) { reject(new Rejection('Team not found with id ' + team.id, 404)); return; }
@@ -77,7 +55,7 @@ export class TeamsDb {
     });
   }
 
-  get(id: string): Promise<Team> {
+  public static get(id: string): Promise<Team> {
     return new Promise<Team>((resolve, reject) => {
       this.table.get(id).run(this.connection).then(result => {
         if(!result) { reject(new Rejection('Team not found with id ' + id, 404)); return; }
@@ -86,7 +64,7 @@ export class TeamsDb {
     });
   }
 
-  delete(id: string): Promise<void> {
+  public static delete(id: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.table.get(id).delete().run(this.connection).then(result => {
         if(result.skipped > 0) { reject(new Rejection('Team not found with id ' + id, 404)); return; }

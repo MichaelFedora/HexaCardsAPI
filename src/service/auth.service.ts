@@ -1,12 +1,13 @@
-import { User, Rejection } from '../data';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
-import { Database } from '../db';
 import * as crypto from 'crypto';
 import * as moment from 'moment';
-import { Logger } from './logger';
 
-export class Authenticator {
+import { User, Rejection } from '../data';
+import { Database } from '../db';
+import { Logger } from '../util';
+
+export class AuthService {
 
   static getSalt(): string {
     return crypto.randomBytes(8).toString('hex').slice(0, 16);
@@ -37,7 +38,7 @@ export class Authenticator {
     const body = jwt.decode(tokenMatch[1]);
 
     try {
-      const u = await Database.users.table.get(body.sub).run(Database.connection);
+      const u = await Database.users.get(body.sub).run(Database.connection);
       jwt.verify(tokenMatch[1], User.fromDBO(u).tokenSecret);
     } catch(e) {
       Logger.error('Could not verify token', e);
@@ -56,9 +57,19 @@ export class Authenticator {
     if(authMatch == null || authMatch[1] == null || authMatch[2] == null)
       return Promise.reject(new Rejection('Header Parse Error: Use "Basic <username>:<password>"!', 400));
 
+    const username = authMatch[1];
+    const password = authMatch[2];
+
     let u: User;
     try {
-      u = await Database.users.getByUsername(authMatch[1]);
+      await Database.users.filter({ username: username }).run(Database.connection)
+        .then(cursor => cursor.toArray().then(arr => {
+          if(arr.length > 1) {
+            Logger.error('Multiple users exist with the same username: ' + username, new Error());
+            return Promise.reject('Multiple users exist with the same username: ' + username);
+          }
+          return Promise.resolve(u = arr[0] as User);
+      }));
     } catch(e) {
       return Promise.reject(new Rejection('Bad username / password!', 400)); // :U
     }
@@ -79,7 +90,7 @@ export class Authenticator {
 
     try {
       jwt.verify(token, u.tokenSecret);
-      await Database.users.table.update(u).run(Database.connection);
+      await Database.users.update(u).run(Database.connection);
     } catch(e) {
       Logger.error('Couldn\'t update database', e);
       return Promise.reject(new Rejection('Couldn\'t update database', 500));

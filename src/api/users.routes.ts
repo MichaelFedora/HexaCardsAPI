@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { User, Rejection } from '../data';
-import { Authenticator, Logger } from '../util';
-import { Database } from '../db';
+import { Logger } from '../util';
+import { AuthService, UserService } from '../service';
 
 /**
  * @todo
@@ -16,11 +16,11 @@ export function bootstrap(router: Router) {
     .post((req, res) => {
 
       const user = User.fromDTOWithPass(req.body);
-      user.salt = Authenticator.getSalt();
+      user.salt = AuthService.getSalt();
       const a = user.password;
-      user.password = Authenticator.hashPassword(a, user.salt);
+      user.password = AuthService.hashPassword(a, user.salt);
 
-      Database.users.create(user).then(
+      UserService.create(user).then(
         value => res.json(value.toDTO()),
         err => {
           res.status(err.status).send(err.message);
@@ -30,7 +30,7 @@ export function bootstrap(router: Router) {
 
   router.route('/users/login')
     .post((req, res) => {
-      Authenticator.login(req).then(
+      AuthService.login(req).then(
         token => res.status(200).send(token),
         (err: Rejection) => {
           res.status(err.status).send(err.message);
@@ -40,8 +40,8 @@ export function bootstrap(router: Router) {
 
   router.route('/users/self')
     .get((req, res) => { // check auth
-      Authenticator.auth(req).then(userId => {
-        Database.users.get(userId)
+      AuthService.auth(req).then(userId => {
+        UserService.get(userId)
             .then(value => res.json(value.toDTO()));
       }, err => {
         res.status(err.status).send(err.message);
@@ -49,10 +49,10 @@ export function bootstrap(router: Router) {
       });
     })
     .put((req, res) => { // check auth
-      Authenticator.auth(req).then(userId => {
+      AuthService.auth(req).then(userId => {
         const user = User.fromDTO(req.body);
         user.id = userId;
-        Database.users.update(user)
+        UserService.update(user)
             .then(value => res.sendStatus(204));
       }).catch(err => {
         res.status(err.status).send(err.message);
@@ -60,8 +60,8 @@ export function bootstrap(router: Router) {
       });
     })
     .delete((req, res) => { // check auth
-      Authenticator.auth(req).then(userId => {
-        Database.users.delete(userId)
+      AuthService.auth(req).then(userId => {
+        UserService.delete(userId)
             .then(() => res.sendStatus(204));
       }).catch(err => {
         res.status(err.status).send(err.message);
@@ -71,8 +71,8 @@ export function bootstrap(router: Router) {
 
   router.route('/users/:id')
     .get((req, res) => {
-      Authenticator.auth(req).then(userId => {
-        Database.users.get(req.params.id)
+      AuthService.auth(req).then(userId => {
+        UserService.get(req.params.id)
             .then(value => res.json(value.toDTO()));
       }).catch(err => {
         res.status(err.status).send(err.message);

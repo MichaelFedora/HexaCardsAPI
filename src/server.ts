@@ -1,5 +1,8 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
+import * as https from 'https';
+import * as cors from 'cors'; /// https://github.com/expressjs/cors
+import * as fs from 'fs';
 import { Logger } from './util';
 import { Database } from './db';
 
@@ -12,6 +15,7 @@ Database.init().then(() => {
 
   const app = express();
 
+  app.use(cors());
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(bodyParser.json());
 
@@ -31,6 +35,11 @@ Database.init().then(() => {
   Routes.bootstrap(router);
 
   app.use('/api', router);
+
+  /*https.createServer({
+    key: fs.readFileSync('privkey.pem'),
+    cert: fs.readFileSync('cert.pem')
+  }, app).listen(port); /// https://github.com/ebekker/ACMESharp/wiki/Quick-Start */
 
   app.listen(port);
   console.log('API started on port ' + port);

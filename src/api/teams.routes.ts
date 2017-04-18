@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { Team } from '../data';
-import { Logger, Authenticator } from '../util';
-import { Database } from '../db';
+import { Logger } from '../util';
+import { TeamService, AuthService } from '../service';
 
 export function bootstrap(router: Router) {
   router.route('/teams')
     .get((req, res) => {
-      Database.teams.getAll().then(
+      TeamService.getAll().then(
         value => res.json(value.map(v => v.toDTO())),
         err => {
           res.status(err.status).send(err.message);
@@ -14,9 +14,9 @@ export function bootstrap(router: Router) {
       });
     })
     .post((req, res) => {
-      Authenticator.auth(req).then(userId => {
+      AuthService.auth(req).then(userId => {
         const team = Team.fromDTO(req.body);
-        Database.teams.create(team)
+        TeamService.create(team)
             .then(value => res.json(value.toDTO()));
       }, err => {
           res.sendStatus(500);
@@ -24,9 +24,9 @@ export function bootstrap(router: Router) {
       });
     })
     .put((req, res) => { // check auth
-      Authenticator.auth(req).then(userId => {
+      AuthService.auth(req).then(userId => {
         const team = Team.fromDTO(req.body);
-        Database.teams.update(team)
+        TeamService.update(team)
           .then(value => res.sendStatus(204));
       }, err => {
           res.sendStatus(500);
@@ -36,7 +36,7 @@ export function bootstrap(router: Router) {
 
   router.route('/teams/:id')
     .get((req, res) => {
-      Database.teams.get(req.params.id).then(
+      TeamService.get(req.params.id).then(
         value => res.json(value.toDTO()),
         err => {
           res.status(err.status).send(err.message);
@@ -44,8 +44,8 @@ export function bootstrap(router: Router) {
       });
     })
     .delete((req, res) => { // check auth
-      Authenticator.auth(req).then(userId => {
-        Database.teams.delete(req.params.id)
+      AuthService.auth(req).then(userId => {
+        TeamService.delete(req.params.id)
           .then(() => res.sendStatus(204));
       }, err => {
         res.status(err.status).send(err.message);
