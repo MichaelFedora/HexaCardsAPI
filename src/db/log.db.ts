@@ -1,7 +1,7 @@
 import { Connection, Db, Table } from 'rethinkdb';
 import * as r from 'rethinkdb';
 
-import { LogEntry } from '../data';
+import { LogEntry, Rejection } from '../data';
 
 export class LogDb {
 
@@ -17,26 +17,24 @@ export class LogDb {
 
   init(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.db.tableList().run(this.connection, (err, result) => {
-        if(err) { reject(err); return; }
-        if(result.findIndex(t => t === 'log') >= 0) { resolve(); return; }
-        this.db.tableCreate('log').run(this.connection, (err, result) => {
-          if(err) { reject(err); return; }
-          (this.table as any).indexCreate('tags', { multi: true });
-        });
-      });
+      this.db.tableList().run(this.connection).then(list => {
+
+        if(list.findIndex(t => t === 'log') < 0) {
+          this.db.tableCreate('log').run(this.connection).then(table => {
+            (this.table as any).indexCreate('tags', { multi: true }).run()
+              .then(result => resolve());
+          });
+        } else resolve();
+      }).catch(err => reject(new Rejection(err)));
     });
   }
 
   getAll(): Promise<LogEntry[]> {
     return new Promise<LogEntry[]>((resolve, reject) => {
-      this.table.run(this.connection, (err, cursor) => {
-        if(err) { reject(err); return; }
-        cursor.toArray((err, result) => {
-          if(err) { reject(err); return; }
-          resolve(result.map(o => LogEntry.fromAny(o)));
-        });
-      });
+      this.table.run(this.connection)
+          .then(cursor => cursor.toArray()
+              .then(result => resolve(result.map(o => LogEntry.fromAny(o))))
+      ).catch(err => reject(new Rejection(err)));
     });
   }
 
@@ -44,11 +42,11 @@ export class LogDb {
     return new Promise<LogEntry>((resolve, reject) => {
       const data = logEntry.toAny();
       delete data.id;
-      this.table.insert(data).run(this.connection, (err, result) => {
-          if(err) { reject(err); return; }
+
+      this.table.insert(data).run(this.connection).then(result => {
           data.id = result.generated_keys[0];
           resolve(LogEntry.fromAny(data));
-        });
+        }, err => reject(new Rejection(err)));
     });
   }
 }

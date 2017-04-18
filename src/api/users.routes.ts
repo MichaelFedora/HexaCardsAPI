@@ -20,8 +20,6 @@ export function bootstrap(router: Router) {
       const a = user.password;
       user.password = Authenticator.hashPassword(a, user.salt);
 
-      console.log(a, user.salt);
-
       Database.users.create(user).then(
         value => res.json(value.toDTO()),
         err => {
