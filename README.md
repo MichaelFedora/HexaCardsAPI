@@ -8,7 +8,9 @@ Feel free to learn.
 
 ## To setup:
 
-`npm install`
+Install node v6, start up a rethinkdb server with default ports/etc.
+
+`npm install` the project.
 
 ## To run:
 

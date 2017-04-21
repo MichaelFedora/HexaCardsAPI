@@ -5,8 +5,7 @@ import * as cors from 'cors'; /// https://github.com/expressjs/cors
 import * as fs from 'fs';
 import { Logger } from './util';
 import { Database } from './db';
-
-import { Routes } from './api';
+import { Api } from './api';
 
 console.log('Initializing database...');
 Database.init().then(() => {
@@ -32,9 +31,10 @@ Database.init().then(() => {
     next();
   });
 
-  Routes.bootstrap(router);
+  const api = new Api();
 
-  app.use('/api', router);
+  app.use('/', router);
+  app.use('/api', api.router);
 
   /*https.createServer({
     key: fs.readFileSync('privkey.pem'),

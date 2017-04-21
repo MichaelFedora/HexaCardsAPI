@@ -6,7 +6,7 @@ import { Team, Rejection } from '../data';
 export class TeamService {
 
   public static get connection(): Connection { return Database.connection; }
-  public static get table(): Table { return Database.users; }
+  public static get table(): Table { return Database.teams; }
 
   /*makeSampleData(resolve, reject): void {
     this.table.count().eq(0).run(this.connection).then(eq0 => {

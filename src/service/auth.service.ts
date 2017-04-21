@@ -74,7 +74,7 @@ export class AuthService {
       return Promise.reject(new Rejection('Bad username / password!', 400)); // :U
     }
 
-    const hashedPass = this.hashPassword(authMatch[2], u.salt);
+    const hashedPass = this.hashPassword(password, u.salt);
 
     if(hashedPass !== u.password)
       return Promise.reject(new Rejection('Bad username / password!', 400)); // :u
